@@ -89,6 +89,12 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            storeFile file('C:\\Users\\Administrator\\Desktop\\sign.jks')
+            storePassword '123456'
+            keyAlias 'demo'
+            keyPassword '123456'
+        }
     }
     buildTypes {
         debug {
@@ -102,6 +108,15 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+    /* flavorDimensions "type"
+    productFlavors {
+        dev {
+            resValue("string", "app_name", "测试包")
+        }
+        production {
+            resValue("string", "app_name", "生产包")
+        }
+    } */
 }
 
 dependencies {

@@ -1,8 +1,9 @@
 {
-  "name": "DemoRN",
+  "name": "demo",
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "dev": "npm run android",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
