@@ -11,7 +11,8 @@ import {SafeAreaView, StatusBar, useColorScheme} from 'react-native';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 // import TimeInterval from './src/components/TimeInterval';
-import ViewDemo from './src/components/ViewDemo';
+import UserSetting from './src/components/UserSetting';
+import TestApi from './src/components/TestApi';
 
 // type SectionProps = PropsWithChildren<{
 //   title: string;
@@ -32,7 +33,8 @@ function App(): React.JSX.Element {
       />
 
       {/* <TimeInterval /> */}
-      <ViewDemo />
+      {/* <UserSetting /> */}
+      <TestApi />
     </SafeAreaView>
   );
 }

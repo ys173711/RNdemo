@@ -1,6 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- 允许应用查询并启动能够处理 HTTP 和 HTTPS web URL -->
+    <queries>
+      <intent>  
+          <action android:name="android.intent.action.VIEW" />  
+          <category android:name="android.intent.category.BROWSABLE" />  
+          <data android:scheme="http" />  
+      </intent>
+    </queries>
 
     <application
       android:name=".MainApplication"
