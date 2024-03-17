@@ -7,40 +7,36 @@ import {
   TextInput,
   Animated,
   Easing,
+  LayoutAnimation,
 } from 'react-native';
-// import {useBackHandler} from '@react-native-community/hooks';
 
 export default () => {
-  const animatedValue = useRef(new Animated.ValueXY({x: 0, y: 0})).current;
-  const animatedStyle = {
-    transform: [{translateX: animatedValue.x}, {translateY: animatedValue.y}],
-  };
-  const animation = Animated.timing(animatedValue, {
-    toValue: {x: 100, y: 100},
-    duration: 1000,
-    useNativeDriver: false,
-    easing: Easing.linear,
-  });
-
+  const [showBox, setShowBox] = React.useState(false);
   const onPress = () => {
-    animation.start();
+    // 在改变布局之前使用布局动画, 会自动根据布局变化计算动画终点应用动画;
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowBox(!showBox);
   };
-
   return (
-    <View>
+    <View style={styles.root}>
       <Button title="Test API" onPress={onPress} />
-      <Animated.View style={[styles.box, animatedStyle]} />
+      {showBox && <View style={[styles.box]} />}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  root: {
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   box: {
     width: 100,
     height: 100,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: 'red',
     backgroundColor: 'lightblue',
-    marginTop: 100,
+    marginTop: 20,
   },
 });
