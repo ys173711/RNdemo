@@ -10,11 +10,7 @@ import React from 'react';
 import {SafeAreaView, StatusBar, useColorScheme} from 'react-native';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-// import TimeInterval from './src/components/TimeInterval';
-import UserSetting from './src/components/UserSetting';
-import TestApi from './src/components/TestApi';
-import FollowScroll from './src/components/FollowScroll';
-import TestModal from './src/components/TestModal';
+import Home from './src/modules/Home';
 
 // type SectionProps = PropsWithChildren<{
 //   title: string;
@@ -22,7 +18,7 @@ import TestModal from './src/components/TestModal';
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
-
+  // console.log('isDarkMode:', isDarkMode); // false
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
@@ -34,11 +30,7 @@ function App(): React.JSX.Element {
         backgroundColor={backgroundStyle.backgroundColor}
       />
 
-      {/* <TimeInterval /> */}
-      {/* <UserSetting /> */}
-      <TestApi />
-      {/* <FollowScroll /> */}
-      {/* <TestModal /> */}
+      <Home />
     </SafeAreaView>
   );
 }
