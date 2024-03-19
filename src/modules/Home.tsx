@@ -6,7 +6,10 @@ import {
   TouchableOpacity,
   Image,
   SectionList,
+  LayoutAnimation,
+  Button,
 } from 'react-native';
+import type {StyleProp, ViewStyle, ImageStyle} from 'react-native';
 import icon_add from '../assets/images/icon_add-2.png';
 import AddAccount from '../components/AddAccount';
 import type {AddAccountRef} from '../components/AddAccount';
@@ -23,10 +26,21 @@ interface SectionListDataTyp {
   type: string;
   data: User[];
 }
-const sectionListData_: SectionListDataTyp[] = typesArr.map(item => ({
-  type: item.name,
-  data: [],
-}));
+const genSectionListData_: () => SectionListDataTyp[] = () => {
+  return typesArr.map(item => ({
+    type: item.name,
+    data: [],
+  }));
+};
+
+const sectionItemState_ = typesArr.reduce((prev, cur) => {
+  if (cur.name === '游戏') {
+    prev[cur.name] = true;
+    return prev;
+  }
+  prev[cur.name] = false;
+  return prev;
+}, {} as {[key: string]: boolean});
 
 export default () => {
   // feat_1: Modal添加账号
@@ -39,7 +53,15 @@ export default () => {
   const [sectionListData, setSectionListData] = React.useState<
     SectionListDataTyp[]
   >([]);
-  useEffect(() => {
+  const [sectionItemState, setSectionItemState] =
+    React.useState(sectionItemState_);
+
+  const onReset = () => {
+    setStorage(STORAGE_KEY.USER, []).then(() => {
+      onFresh();
+    });
+  };
+  const onFresh = () => {
     getStorage(STORAGE_KEY.USER).then(res => {
       if (!res) {
         res = [];
@@ -47,11 +69,17 @@ export default () => {
       const sectionListData_res = res.reduce((prev, cur) => {
         prev.find(item => item.type === cur.type)?.data.push(cur);
         return prev;
-      }, sectionListData_);
+      }, genSectionListData_());
       setSectionListData(sectionListData_res);
     });
+  };
+  useEffect(() => {
+    onFresh();
   }, []);
   const renderItem = ({item}: {item: User}) => {
+    if (!sectionItemState[item.type]) {
+      return null;
+    }
     const styles = StyleSheet.create({
       content: {
         paddingVertical: 12,
@@ -128,12 +156,35 @@ export default () => {
         resizeMode: 'contain',
       },
     });
+    const isOpen = sectionItemState[section.type];
+    const computedStyle_active: StyleProp<ImageStyle> = {
+      transform: [{rotate: '-90deg'}],
+    };
+    const computedStyle = isOpen ? computedStyle_active : null;
+    const noData = section.data.length === 0;
+    const computedStyle_borderRadius: StyleProp<ViewStyle> = {
+      borderBottomLeftRadius: !isOpen || noData ? 12 : 0,
+      borderBottomRightRadius: !isOpen || noData ? 12 : 0,
+    };
+    // feat_3: 点击SectionHeader展开/收起
+    const onPressFold = () => {
+      sectionItemState[section.type] = !sectionItemState[section.type];
+      LayoutAnimation.easeInEaseOut();
+      setSectionItemState({...sectionItemState});
+    };
+
     return (
-      <View style={styles.sectionHeader}>
+      <View style={[styles.sectionHeader, computedStyle_borderRadius]}>
         <Image source={icon} style={styles.icon} />
         <Text style={styles.title}>{section.type}</Text>
-        <TouchableOpacity style={styles.iconBtn} activeOpacity={0.5}>
-          <Image source={icon_arrow} style={styles.icon_arrow} />
+        <TouchableOpacity
+          style={styles.iconBtn}
+          activeOpacity={0.5}
+          onPress={onPressFold}>
+          <Image
+            source={icon_arrow}
+            style={[styles.icon_arrow, computedStyle]}
+          />
         </TouchableOpacity>
       </View>
     );
@@ -159,13 +210,14 @@ export default () => {
   return (
     <View style={styles.root}>
       <Text style={styles.title}>账号管理</Text>
+      <Button title="清空数据" onPress={onReset} />
       <TouchableOpacity
         style={styles.addBtn}
         activeOpacity={0.5}
         onPress={onPress}>
         <Image source={icon_add} style={styles.addBtn_img} />
       </TouchableOpacity>
-      <AddAccount ref={addAccountRef} />
+      <AddAccount ref={addAccountRef} onFresh={onFresh} />
       {renderSectionList()}
     </View>
   );

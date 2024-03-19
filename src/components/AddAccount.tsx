@@ -15,6 +15,10 @@ import {getUUID} from '../utils/UUID';
 import {getStorage, setStorage, STORAGE_KEY} from '../utils/Storage';
 import type {User} from '../utils/Storage';
 
+interface AddAccountProps {
+  onFresh?: () => void;
+}
+
 // 需指定暴露的ref类型
 export interface AddAccountRef {
   show: () => void;
@@ -28,7 +32,8 @@ export const typesArr = [
   {id: 4, name: '其他'},
 ];
 
-const AddAccount = forwardRef<AddAccountRef>((props, ref) => {
+const AddAccount = forwardRef<AddAccountRef, AddAccountProps>((props, ref) => {
+  const {onFresh} = props;
   const [visible, setVisible] = React.useState(false);
   const show = () => {
     setVisible(true);
@@ -88,8 +93,7 @@ const AddAccount = forwardRef<AddAccountRef>((props, ref) => {
         borderColor: '#ddd',
       },
     });
-    type ViewStyleTyp = StyleProp<ViewStyle>;
-    const computedStyle = (index: number): ViewStyleTyp => ({
+    const computedStyle = (index: number): StyleProp<ViewStyle> => ({
       borderTopLeftRadius: index === 0 ? 8 : 0,
       borderBottomLeftRadius: index === 0 ? 8 : 0,
       borderTopRightRadius: index === typesArr.length - 1 ? 8 : 0,
@@ -99,7 +103,7 @@ const AddAccount = forwardRef<AddAccountRef>((props, ref) => {
     const computedStyle_selected = (
       index: number,
       isSelected: boolean,
-    ): ViewStyleTyp => {
+    ): StyleProp<ViewStyle> => {
       return isSelected ? {backgroundColor: '#1890ff'} : null;
     };
     type TextStyleTyp = StyleProp<TextStyle>;
@@ -184,6 +188,7 @@ const AddAccount = forwardRef<AddAccountRef>((props, ref) => {
       })
       .then(() => {
         hide();
+        onFresh && onFresh();
       });
   };
   const renderButton = () => {
