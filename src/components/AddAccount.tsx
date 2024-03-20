@@ -21,7 +21,7 @@ interface AddAccountProps {
 
 // 需指定暴露的ref类型
 export interface AddAccountRef {
-  show: () => void;
+  show: (accountInfo?: User) => void;
   hide: () => void;
 }
 
@@ -35,7 +35,33 @@ export const typesArr = [
 const AddAccount = forwardRef<AddAccountRef, AddAccountProps>((props, ref) => {
   const {onFresh} = props;
   const [visible, setVisible] = React.useState(false);
-  const show = () => {
+  const selectTypeDefault = '游戏';
+  const [selectType, setSelectType] = React.useState(selectTypeDefault);
+  const [name, setName] = React.useState('');
+  const [account, setAccount] = React.useState('');
+  const [pwd, setPwd] = React.useState('');
+  const [id, setId] = React.useState('');
+  const [isEdit, setIsEdit] = React.useState(false);
+
+  const reset = () => {
+    setSelectType(selectTypeDefault);
+    setName('');
+    setAccount('');
+    setPwd('');
+    setId('');
+    setIsEdit(false);
+  };
+  const show = (accountInfo?: User) => {
+    if (accountInfo) {
+      setSelectType(accountInfo.type);
+      setName(accountInfo.name);
+      setAccount(accountInfo.account);
+      setPwd(accountInfo.pwd);
+      setId(accountInfo.id);
+      setIsEdit(true);
+    } else {
+      reset();
+    }
     setVisible(true);
   };
   const hide = () => {
@@ -68,7 +94,7 @@ const AddAccount = forwardRef<AddAccountRef, AddAccountProps>((props, ref) => {
     });
     return (
       <View style={styles.header}>
-        <Text style={styles.title}>添加账号</Text>
+        <Text style={styles.title}>{isEdit ? '编辑' : '添加'}账号</Text>
         <TouchableOpacity onPress={hide} style={styles.closeBtn}>
           <Image source={icon_close_modal} style={styles.closeBtn_img} />
         </TouchableOpacity>
@@ -76,7 +102,6 @@ const AddAccount = forwardRef<AddAccountRef, AddAccountProps>((props, ref) => {
     );
   };
 
-  const [selectType, setSelectType] = React.useState(0);
   const renderSelectType = () => {
     const styles = StyleSheet.create({
       selectTypeLayout: {
@@ -115,7 +140,7 @@ const AddAccount = forwardRef<AddAccountRef, AddAccountProps>((props, ref) => {
       <View style={styles.selectTypeLayout}>
         {typesArr.map((item, index) => {
           const _computedStyle = computedStyle(index);
-          const isSelected = selectType === index;
+          const isSelected = selectType === item.name;
           const _computedStyle_selected = computedStyle_selected(
             index,
             isSelected,
@@ -126,7 +151,7 @@ const AddAccount = forwardRef<AddAccountRef, AddAccountProps>((props, ref) => {
             <TouchableOpacity
               key={item.id}
               style={[styles.typeItem, _computedStyle, _computedStyle_selected]}
-              onPress={() => setSelectType(index)}>
+              onPress={() => setSelectType(item.name)}>
               <Text style={_computedStyle_selected_text}>{item.name}</Text>
             </TouchableOpacity>
           );
@@ -135,7 +160,6 @@ const AddAccount = forwardRef<AddAccountRef, AddAccountProps>((props, ref) => {
     );
   };
 
-  const [name, setName] = React.useState('');
   const renderName = () => (
     <TextInput
       style={styles.input}
@@ -145,7 +169,6 @@ const AddAccount = forwardRef<AddAccountRef, AddAccountProps>((props, ref) => {
     />
   );
 
-  const [account, setAccount] = React.useState('');
   const renderAccount = () => (
     <TextInput
       style={styles.input}
@@ -155,7 +178,6 @@ const AddAccount = forwardRef<AddAccountRef, AddAccountProps>((props, ref) => {
     />
   );
 
-  const [pwd, setPwd] = React.useState('');
   const renderPwd = () => (
     <TextInput
       style={styles.input}
@@ -172,24 +194,43 @@ const AddAccount = forwardRef<AddAccountRef, AddAccountProps>((props, ref) => {
       return;
     }
     const data: User = {
-      id: getUUID(),
-      type: typesArr[selectType].name,
+      id,
+      type: selectType,
       name,
       account,
       pwd,
     };
-    getStorage(STORAGE_KEY.USER)
-      .then(res => {
-        if (!res) {
-          res = [];
-        }
-        res.push(data);
-        return setStorage(STORAGE_KEY.USER, res);
-      })
-      .then(() => {
-        hide();
-        onFresh && onFresh();
-      });
+    if (isEdit) {
+      getStorage(STORAGE_KEY.USER)
+        .then(res => {
+          if (!res) {
+            res = [];
+          }
+          const index = res.findIndex(item => item.id === id);
+          res[index] = data;
+          return setStorage(STORAGE_KEY.USER, res);
+        })
+        .then(() => {
+          reset();
+          hide();
+          onFresh && onFresh();
+        });
+    } else {
+      data.id = getUUID();
+      getStorage(STORAGE_KEY.USER)
+        .then(res => {
+          if (!res) {
+            res = [];
+          }
+          res.push(data);
+          return setStorage(STORAGE_KEY.USER, res);
+        })
+        .then(() => {
+          reset();
+          hide();
+          onFresh && onFresh();
+        });
+    }
   };
   const renderButton = () => {
     const styles = StyleSheet.create({

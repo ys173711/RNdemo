@@ -7,7 +7,8 @@ import {
   Image,
   SectionList,
   LayoutAnimation,
-  Button,
+  Alert,
+  Switch,
 } from 'react-native';
 import type {StyleProp, ViewStyle, ImageStyle} from 'react-native';
 import icon_add from '../assets/images/icon_add-2.png';
@@ -45,8 +46,39 @@ const sectionItemState_ = typesArr.reduce((prev, cur) => {
 export default () => {
   // feat_1: Modal添加账号
   const addAccountRef = React.useRef<AddAccountRef>(null);
-  const onPress = () => {
-    addAccountRef.current?.show();
+  // feat_6: 是否开启显示密码
+  const [isShowPwd, setIsShowPwd] = React.useState(true);
+
+  // feat_4: 点击账号列表项查看详情, 带参数传递给Modal, 函数重载
+  const onPress = (data?: User) => {
+    if (data) {
+      addAccountRef.current?.show(data);
+    } else {
+      addAccountRef.current?.show();
+    }
+  };
+
+  // feat_5: 长按账号列表项删除
+  const deleteAccount = (data: User) => {
+    const {id} = data;
+    getStorage(STORAGE_KEY.USER).then(res => {
+      if (!res) {
+        res = [];
+      }
+      const index = res.findIndex(item => item.id === id);
+      if (index !== -1) {
+        res.splice(index, 1);
+        setStorage(STORAGE_KEY.USER, res).then(() => {
+          onFresh();
+        });
+      }
+    });
+  };
+  const onLongPress = (data: User) => {
+    Alert.alert('提示', '确定删除该账号吗?', [
+      {text: '取消', onPress: () => {}},
+      {text: '确定', onPress: () => deleteAccount(data)},
+    ]);
   };
 
   // feat_2: SectionList数据初始化
@@ -56,10 +88,16 @@ export default () => {
   const [sectionItemState, setSectionItemState] =
     React.useState(sectionItemState_);
 
-  const onReset = () => {
+  const resetStorage = () => {
     setStorage(STORAGE_KEY.USER, []).then(() => {
       onFresh();
     });
+  };
+  const onReset = () => {
+    Alert.alert('提示', '确定清空所有数据吗?', [
+      {text: '取消', onPress: () => {}},
+      {text: '确定', onPress: resetStorage},
+    ]);
   };
   const onFresh = () => {
     getStorage(STORAGE_KEY.USER).then(res => {
@@ -70,6 +108,7 @@ export default () => {
         prev.find(item => item.type === cur.type)?.data.push(cur);
         return prev;
       }, genSectionListData_());
+      LayoutAnimation.easeInEaseOut();
       setSectionListData(sectionListData_res);
     });
   };
@@ -105,13 +144,18 @@ export default () => {
       },
     });
     return (
-      <View style={styles.content}>
+      <TouchableOpacity
+        style={styles.content}
+        onPress={() => onPress(item)}
+        onLongPress={() => onLongPress(item)}>
         <Text style={styles.title}>{item.name}</Text>
         <View style={styles.layout}>
           <Text style={styles.text}>{`账号: ${item.account}`}</Text>
-          <Text style={styles.text}>{`密码: ${item.pwd}`}</Text>
+          <Text style={styles.text}>{`密码: ${
+            isShowPwd ? item.pwd : '********'
+          }`}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
   const renderSectionHeader = ({section}: {section: SectionListDataTyp}) => {
@@ -209,12 +253,21 @@ export default () => {
 
   return (
     <View style={styles.root}>
-      <Text style={styles.title}>账号管理</Text>
-      <Button title="清空数据" onPress={onReset} />
+      <View style={styles.header}>
+        <Text style={styles.title}>账号管理</Text>
+        <TouchableOpacity onPress={onReset} style={styles.resetBtn}>
+          <Text>清空数据</Text>
+        </TouchableOpacity>
+        <Switch
+          value={isShowPwd}
+          onValueChange={setIsShowPwd}
+          style={styles.isShowPwd}
+        />
+      </View>
       <TouchableOpacity
         style={styles.addBtn}
         activeOpacity={0.5}
-        onPress={onPress}>
+        onPress={() => onPress()}>
         <Image source={icon_add} style={styles.addBtn_img} />
       </TouchableOpacity>
       <AddAccount ref={addAccountRef} onFresh={onFresh} />
@@ -227,6 +280,19 @@ const styles = StyleSheet.create({
   root: {
     position: 'relative',
     height: '100%',
+  },
+  header: {
+    position: 'relative',
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+  },
+  resetBtn: {
+    position: 'absolute',
+    left: 16,
+  },
+  isShowPwd: {
+    position: 'absolute',
+    right: 16,
   },
   title: {
     fontSize: 18,
